@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                     BigInt     @id @default(autoincrement())
+  name                   String     @unique @db.VarChar(191)
+  subscribes             Boolean    @default(false)
+  password               String     @db.VarChar(255)
+  rememberToken          String?    @map("remember_token") @db.VarChar(100)
+  subscriptionPlan       String     @default("free") @map("subscription_plan") @db.VarChar(20)
+  downloadsUsedMonth     Int        @default(0) @map("downloads_used_month")
+  downloadsMonthStartsAt DateTime?  @map("downloads_month_starts_at") @db.Date
+  createdAt              DateTime   @default(now()) @map("created_at")
+  updatedAt              DateTime   @updatedAt @map("updated_at")
+  playlists              Playlist[]
+  topTrackVotes          MonthlyTopTrackVote[]
+
+  @@map("users")
+}
+
+model Artist {
+  id        BigInt        @id @default(autoincrement())
+  name      String        @db.VarChar(255)
+  description String?     @db.Text
+  photoPath String?       @map("photo_path") @db.VarChar(255)
+  displayListeners BigInt? @map("display_listeners")
+  isPopular Boolean       @default(false) @map("is_popular")
+  isVisible Boolean       @default(true) @map("is_visible")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  music     MusicArtist[]
+
+  @@map("artists")
+}
+
+model Year {
+  id        BigInt   @id @default(autoincrement())
+  date      Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  tracks    Music[]
+
+  @@map("years")
+}
+
+model Language {
+  id        BigInt   @id @default(autoincrement())
+  name      String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  tracks    Music[]
+
+  @@map("languages")
+}
+
+model Category {
+  id           BigInt                @id @default(autoincrement())
+  name         String                @db.VarChar(255)
+  createdAt    DateTime              @default(now()) @map("created_at")
+  updatedAt    DateTime              @updatedAt @map("updated_at")
+  tracks       Music[]
+  translations CategoryTranslation[]
+
+  @@map("categories")
+}
+
+model Music {
+  id          BigInt          @id @default(autoincrement())
+  name        String          @db.VarChar(255)
+  artistId    BigInt?         @map("artist_id")
+  yearId      BigInt          @map("year_id")
+  languageId  BigInt          @map("language_id")
+  categoryId  BigInt?         @map("category_id")
+  plays       BigInt          @default(0)
+  displayPlays BigInt?        @map("display_plays")
+  monthlyPlays BigInt         @default(0) @map("monthly_plays")
+  monthlyPlaysMonthKey String? @map("monthly_plays_month_key") @db.VarChar(7)
+  isPopular   Boolean         @default(false) @map("is_popular")
+  isVisible   Boolean         @default(true) @map("is_visible")
+  audioPath   String?         @map("audio_path") @db.VarChar(255)
+  coverPath   String?         @map("cover_path") @db.VarChar(255)
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+  year        Year            @relation(fields: [yearId], references: [id])
+  language    Language        @relation(fields: [languageId], references: [id])
+  category    Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  musicArtist MusicArtist[]
+  inPlaylists PlaylistTrack[]
+  topTrackVotes MonthlyTopTrackVote[]
+
+  @@map("music")
+}
+
+model MonthlyTopTrackVote {
+  id        BigInt   @id @default(autoincrement())
+  userId    BigInt   @map("user_id")
+  musicId   BigInt   @map("music_id")
+  monthKey  String   @map("month_key") @db.VarChar(7)
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  music     Music    @relation(fields: [musicId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, monthKey], map: "monthly_top_track_votes_user_month_unique")
+  @@index([monthKey, musicId], map: "monthly_top_track_votes_month_music_idx")
+  @@map("monthly_top_track_votes")
+}
+
+model CategoryTranslation {
+  id         BigInt   @id @default(autoincrement())
+  categoryId BigInt   @map("category_id")
+  locale     String   @db.VarChar(10)
+  name       String   @db.VarChar(255)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, locale], map: "category_translations_category_locale_unique")
+  @@index([locale], map: "category_translations_locale_index")
+  @@map("category_translations")
+}
+
+model MusicArtist {
+  id        BigInt   @id @default(autoincrement())
+  musicId   BigInt   @map("music_id")
+  artistId  BigInt   @map("artist_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  music     Music    @relation(fields: [musicId], references: [id], onDelete: Cascade)
+  artist    Artist   @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([musicId, artistId])
+  @@map("music_artist")
+}
+
+model Playlist {
+  id        BigInt          @id @default(autoincrement())
+  name      String          @db.VarChar(255)
+  userId    BigInt          @map("user_id")
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  user      User            @relation(fields: [userId], references: [id])
+  tracks    PlaylistTrack[]
+
+  @@map("playlists")
+}
+
+model PlaylistTrack {
+  id         BigInt    @id @default(autoincrement())
+  playlistId BigInt?   @map("playlist_id")
+  musicId    BigInt?   @map("music_id")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  playlist   Playlist? @relation(fields: [playlistId], references: [id])
+  music      Music?    @relation(fields: [musicId], references: [id])
+
+  @@unique([playlistId, musicId], map: "playlist_tracks_playlist_music_unique")
+  @@map("playlist_tracks")
+}
+
+model HomeBanner {
+  id        BigInt   @id @default(autoincrement())
+  title     String   @db.VarChar(80)
+  subtitle  String?  @db.VarChar(160)
+  url       String?  @db.VarChar(255)
+  imageUrl  String?  @map("image_url") @db.VarChar(255)
+  imagePath String?  @map("image_path") @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("home_banners")
+}

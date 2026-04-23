@@ -1,0 +1,15 @@
+[
+  {
+    "id": "d2b91551-53c7-4e49-8a28-bf73e69df4fe",
+    "name": "Anonymous",
+    "email": "",
+    "message": "1234567890-",
+    "userId": null,
+    "userName": "",
+    "ip": "127.0.0.1",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36",
+    "isRead": false,
+    "createdAt": "2026-03-26T08:31:30.295Z",
+    "readAt": null
+  }
+]

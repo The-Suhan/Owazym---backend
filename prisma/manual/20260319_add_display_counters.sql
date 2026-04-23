@@ -1,0 +1,5 @@
+ALTER TABLE artists
+  ADD COLUMN IF NOT EXISTS display_listeners BIGINT;
+
+ALTER TABLE music
+  ADD COLUMN IF NOT EXISTS display_plays BIGINT;

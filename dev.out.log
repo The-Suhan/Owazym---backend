@@ -1,0 +1,11 @@
+Backend API running at http://localhost:4000/api
+Backend API network URL: http://192.168.2.108:4000/api
+[0mGET /health [32m200[0m 4.141 ms - 59[0m
+[0mGET /api/home [32m200[0m 297.354 ms - 15364[0m
+[0mGET /api/artists [32m200[0m 2.861 ms - 2348[0m
+[0mGET /api/albums [32m200[0m 5.277 ms - 6275[0m
+[0mGET /api/top10-vote/status [33m401[0m 1.021 ms - 84[0m
+[0mGET /api/artists [32m200[0m 2.348 ms - 2348[0m
+[0mGET /api/top10-vote/status [33m401[0m 0.785 ms - 84[0m
+[0mGET /api/artists [32m200[0m 3.587 ms - 2348[0m
+[0mGET /health [32m200[0m 0.236 ms - 59[0m
